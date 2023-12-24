@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
-import { FaPlus } from "react-icons/fa6";
+import { FaPlus } from "react-icons/fa";
 import { LuPencilLine } from "react-icons/lu";
 import { FiTrash2 } from "react-icons/fi";
-import { TbMoodEmpty } from "react-icons/tb";
+import { MdMoodBad } from "react-icons/md";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const [text, setText] = useState("");
-  const [values, setValues] = useState([]);
-  const [editableIndex, setEditableIndex] = useState(null);
+  const [values, setValues] = useState<string[]>([]);
+  const [editableIndex, setEditableIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    const storedValues = JSON.parse(localStorage.getItem("list"));
+    const storedValues = JSON.parse(localStorage.getItem("list") || "[]");
     if (storedValues) {
       setValues(storedValues);
     }
   }, []);
 
   const Add = () => {
-    if (text == "") {
+    if (text === "") {
       toast.error("Fill the text entry below!", {
         position: "top-right",
         autoClose: 3000,
@@ -39,17 +39,17 @@ function App() {
     }
   };
 
-  const handleDelete = (indexToRemove) => {
+  const handleDelete = (indexToRemove: number) => {
     const updatedValues = values.filter((_, index) => index !== indexToRemove);
     setValues(updatedValues);
     localStorage.setItem("list", JSON.stringify(updatedValues));
   };
 
-  const handleEdit = (index) => {
+  const handleEdit = (index: number | null) => {
     setEditableIndex(index);
   };
 
-  const handleInputChange = (index, newValue) => {
+  const handleInputChange = (index: number, newValue: string) => {
     const updatedValues = [...values];
     updatedValues[index] = newValue;
     setValues(updatedValues);
@@ -112,6 +112,13 @@ function Item({
   handleEdit,
   editable,
   handleInputChange,
+}: {
+  value: string;
+  index: number;
+  handleDelete: (index: number) => void;
+  handleEdit: (index: number | null) => void;
+  editable: boolean;
+  handleInputChange: (index: number, newValue: string) => void;
 }) {
   const [editedValue, setEditedValue] = useState(value);
 
@@ -155,7 +162,7 @@ function Item({
 function Empty() {
   return (
     <div className="flex flex-col justify-center items-center my-20">
-      <TbMoodEmpty className="text-2xl" />
+      <MdMoodBad className="text-2xl" />
       <p className="italic text-lg">Your list is empty.</p>
     </div>
   );
