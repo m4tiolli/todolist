@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: "Poppins";
+  transition: all .1s linear;
+  user-select: none;
+}
+
+::selection {
+  background-color: rgb(113, 113, 122);
+ color: rgb(39, 39, 42);
+}
