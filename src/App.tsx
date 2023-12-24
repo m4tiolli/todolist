@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import { LuPencilLine } from "react-icons/lu";
 import { FiTrash2 } from "react-icons/fi";
+import { FaRegCheckCircle } from "react-icons/fa";
 import { HiOutlineEmojiSad } from "react-icons/hi";
 import { MdOutlineDarkMode } from "react-icons/md";
 import { BsFillMoonFill } from "react-icons/bs";
@@ -14,17 +15,32 @@ import {
   ModalOverlay,
   useDisclosure,
 } from "@chakra-ui/react";
+import sound from '../src/assets/sound.mp3'
 
 function App() {
   const [text, setText] = useState("");
   const [values, setValues] = useState<string[]>([]);
   const [editableIndex, setEditableIndex] = useState<number | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const storedTheme = localStorage.getItem("theme");
+  const toastifyTheme = storedTheme === "dark" ? "dark" : "light";
+  const audio = useRef(new Audio(sound));
 
   useEffect(() => {
     const storedValues = JSON.parse(localStorage.getItem("list") || "[]");
     if (storedValues) {
       setValues(storedValues);
+    }
+  }, []);
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme");
+    if (storedTheme === "dark") {
+      setIsChecked(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setIsChecked(false);
+      document.documentElement.classList.remove("dark");
     }
   }, []);
 
@@ -38,7 +54,7 @@ function App() {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
-        theme: "dark",
+        theme: toastifyTheme,
       });
       return;
     } else {
@@ -54,7 +70,7 @@ function App() {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
-        theme: "dark",
+        theme: toastifyTheme,
       });
     }
   };
@@ -71,7 +87,24 @@ function App() {
       pauseOnHover: true,
       draggable: true,
       progress: undefined,
-      theme: "dark",
+      theme: toastifyTheme,
+    });
+  };
+  
+  const handleConfirm = (indexToRemove: number) => {
+    const updatedValues = values.filter((_, index) => index !== indexToRemove);
+    setValues(updatedValues);
+    localStorage.setItem("list", JSON.stringify(updatedValues));
+    audio.current.play();
+    toast.success("Task completed!", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: toastifyTheme,
     });
   };
 
@@ -98,17 +131,6 @@ function App() {
       document.documentElement.classList.remove("dark");
     }
   };
-
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("theme");
-    if (storedTheme === "dark") {
-      setIsChecked(true);
-      document.documentElement.classList.add("dark");
-    } else {
-      setIsChecked(false);
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
 
   return (
     <ChakraProvider>
@@ -154,6 +176,7 @@ function App() {
               index={index}
               value={value}
               handleDelete={handleDelete}
+              handleConfirm={handleConfirm}
               handleEdit={handleEdit}
               editable={editableIndex === index}
               handleInputChange={handleInputChange}
@@ -198,6 +221,7 @@ function Item({
   value,
   index,
   handleDelete,
+  handleConfirm,
   handleEdit,
   editable,
   handleInputChange,
@@ -205,12 +229,14 @@ function Item({
   value: string;
   index: number;
   handleDelete: (index: number) => void;
+  handleConfirm: (index: number) => void;
   handleEdit: (index: number | null) => void;
   editable: boolean;
   handleInputChange: (index: number, newValue: string) => void;
 }) {
   const [editedValue, setEditedValue] = useState(value);
-
+  const storedTheme = localStorage.getItem("theme");
+  const toastifyTheme = storedTheme === "dark" ? "dark" : "light";
   const handleBlur = () => {
     if (editedValue.trim() === "") {
       toast.error("The task cannot be empty!", {
@@ -221,7 +247,7 @@ function Item({
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
-        theme: "dark",
+        theme: toastifyTheme,
       });
     } else {
       handleInputChange(index, editedValue);
@@ -233,7 +259,7 @@ function Item({
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
-        theme: "dark",
+        theme: toastifyTheme,
       });
     }
     handleEdit(null);
@@ -253,7 +279,13 @@ function Item({
       ) : (
         <span>{value}</span>
       )}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-row-reverse items-center justify-between gap-2">
+        <div
+          className="cursor-pointer grid place-items-center hover:text-green-800 dark:hover:bg-zinc-500 hover:bg-zinc-300 h-8 w-8 rounded-md"
+          onClick={() => handleConfirm(index)}
+        >
+          <FaRegCheckCircle />
+        </div>
         <div
           className="cursor-pointer grid place-items-center hover:text-zinc-800 dark:hover:bg-zinc-500 hover:bg-zinc-300 h-8 w-8 rounded-md"
           onClick={() => handleEdit(index)}
